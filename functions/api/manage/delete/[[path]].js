@@ -20,6 +20,18 @@ const corsHeaders = {
     'Access-Control-Max-Age': '86400',
 };
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+        return '/file/';
+    }
+}
+
 export async function onRequest(context) {
     const { request, env, params, waitUntil } = context;
 
@@ -54,7 +66,8 @@ export async function onRequest(context) {
                 // 处理当前文件夹下的所有文件
                 for (const file of files) {
                     const fileId = file.name;
-                    const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+                    const filePrefix = getFilePrefix(url.hostname);
+                    const cdnUrl = `https://${url.hostname}${filePrefix}${fileId}`;
 
                     const success = await deleteFile(env, fileId, cdnUrl, url);
                     if (success) {
@@ -102,7 +115,8 @@ export async function onRequest(context) {
         // 解码params.path
         params.path = decodeURIComponent(params.path);
         const fileId = params.path.split(',').join('/');
-        const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+        const filePrefix = getFilePrefix(url.hostname);
+        const cdnUrl = `https://${url.hostname}${filePrefix}${fileId}`;
 
         const success = await deleteFile(env, fileId, cdnUrl, url);
         if (!success) {
