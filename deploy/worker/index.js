@@ -112,14 +112,21 @@ const routes = [
     { path: '/api/manage/tags/', module: apiManageTagsCatchAll, middlewares: [mw_api, mw_api_manage], catchAll: true },
     { path: '/api/manage/white/', module: apiManageWhiteCatchAll, middlewares: [mw_api, mw_api_manage], catchAll: true },
     { path: '/dav/', module: davCatchAll, middlewares: [mw_dav], catchAll: true },
-    { path: '/file/', module: fileCatchAll, middlewares: [mw_file], catchAll: true },
+    // 原 /file/ 路由已替换为以下两条域名专用路由
+    { path: '/p/', module: fileCatchAll, middlewares: [mw_file], catchAll: true, hostname: 'peixue.kdns.fr' },
+    { path: '/e/', module: fileCatchAll, middlewares: [mw_file], catchAll: true, hostname: 'eira.kdns.fr' },
 ];
 
 
 // ==================== 路由匹配 ====================
 
-function matchRoute(pathname) {
+function matchRoute(pathname, hostname) {
     for (const route of routes) {
+        // 如果路由指定了 hostname，则必须与当前请求的域名匹配
+        if (route.hostname && route.hostname !== hostname) {
+            continue;
+        }
+
         if (route.catchAll) {
             if (pathname.startsWith(route.path)) {
                 const rest = pathname.slice(route.path.length);
@@ -291,7 +298,7 @@ export default {
         const url = new URL(request.url);
         const pathname = url.pathname;
 
-        const matched = matchRoute(pathname);
+        const matched = matchRoute(pathname, url.hostname);
 
         if (!matched) {
             if (env.ASSETS) {
