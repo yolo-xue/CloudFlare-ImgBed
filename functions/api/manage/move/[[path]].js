@@ -10,6 +10,18 @@ import {
 } from "../../../utils/metadata/channelCredentials.js";
 import { cleanPersistedMetadata } from "../../../utils/metadata/metadataSecurity.js";
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+        return '/file/';
+    }
+}
+
 export async function onRequest(context) {
     const { request, env, params, waitUntil } = context;
 
@@ -53,7 +65,8 @@ export async function onRequest(context) {
                     const fileId = file.name;
                     const fileName = file.name.split('/').pop();
                     const newFileId = `${folderDist}/${fileName}`;
-                    const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+                    const filePrefix = getFilePrefix(url.hostname);
+                    const cdnUrl = `https://${url.hostname}${filePrefix}${fileId}`;
 
                     const success = await moveFile(env, fileId, newFileId, cdnUrl, url);
                     if (success) {
@@ -105,7 +118,8 @@ export async function onRequest(context) {
         const fileId = params.path.split(',').join('/');
         const fileKey = fileId.split('/').pop();
         const newFileId = dist === '' ? fileKey : `${dist}/${fileKey}`;
-        const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+        const filePrefix = getFilePrefix(url.hostname);
+        const cdnUrl = `https://${url.hostname}${filePrefix}${fileId}`;
 
         const success = await moveFile(env, fileId, newFileId, cdnUrl, url);
         if (!success) {
