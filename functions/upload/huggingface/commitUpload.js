@@ -10,6 +10,17 @@ import { getDatabase } from '../../utils/databaseAdapter.js';
 import { moderateContent, endUpload, getUploadIp, getIPAddress, sanitizeUploadFolder, createResponse } from '../uploadTools.js';
 import { userAuthCheck, UnauthorizedResponse } from '../../utils/auth/userAuth.js';
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        return '/file/';
+    }
+}
+
 export async function onRequestPost(context) {
     const { request, env, waitUntil } = context;
     const url = new URL(request.url);
@@ -134,8 +145,9 @@ export async function onRequestPost(context) {
         };
         waitUntil(endUpload(uploadContext, fullId, metadata));
 
-        // 返回成功响应
-        const returnLink = `/file/${fullId}`;
+        // 生成返回链接（根据域名动态选择前缀）
+        const filePrefix = getFilePrefix(url.hostname);
+        const returnLink = `${filePrefix}${fullId}`;
         const responseBody = {
             success: true,
             src: returnLink,
