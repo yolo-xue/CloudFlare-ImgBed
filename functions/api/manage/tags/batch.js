@@ -88,6 +88,18 @@ export async function onRequest(context) {
             });
         }
 
+        // 根据请求域名确定文件访问路径前缀
+        const hostname = url.hostname;
+        let filePathPrefix;
+        if (hostname === 'peixue.kdns.fr') {
+            filePathPrefix = '/p/';
+        } else if (hostname === 'eira.kdns.fr') {
+            filePathPrefix = '/e/';
+        } else {
+            // 未知域名，保留原 /file/ 前缀（但主路由已不支持，此情况通常不会发生）
+            filePathPrefix = '/file/';
+        }
+
         // Process files in batch
         const results = {
             success: true,
@@ -126,8 +138,8 @@ export async function onRequest(context) {
                     metadata
                 });
 
-                // Clear CDN cache (async)
-                const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+                // Clear CDN cache (async) - 使用动态前缀
+                const cdnUrl = `https://${hostname}${filePathPrefix}${fileId}`;
                 waitUntil(purgeCFCache(env, cdnUrl));
 
                 // Track updated file for batch index update
