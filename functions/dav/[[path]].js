@@ -140,7 +140,19 @@ async function handleGet(request, env) {
         }
     } else { // File download
         try {
-            const fileUrl = new URL(`/file${path}`, request.url);
+            const requestUrl = new URL(request.url);
+            const hostname = requestUrl.hostname;
+            let filePrefix;
+            if (hostname === 'peixue.kdns.fr') {
+                filePrefix = '/p';
+            } else if (hostname === 'eira.kdns.fr') {
+                filePrefix = '/e';
+            } else {
+                // 未知域名，回退到 /file（但主路由可能不处理，建议添加更多映射）
+                filePrefix = '/file';
+            }
+
+            const fileUrl = new URL(`${filePrefix}${path}`, request.url);
 
             const fileResponse = await fetch(fileUrl.toString());
 
