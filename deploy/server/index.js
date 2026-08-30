@@ -240,8 +240,16 @@ async function executeChain(middlewares, handler, context) {
  * 处理 Functions 请求
  */
 async function handleFunctionRequest(originalRequest, pathname) {
-    // 查找对应的 function 文件
-    const funcInfo = findFunctionFile(pathname);
+    // 将 /p/ 和 /e/ 前缀映射到 /file/，以便复用 functions/file/[[path]].js 处理逻辑
+    let internalPathname = pathname;
+    if (pathname.startsWith('/p/')) {
+        internalPathname = '/file/' + pathname.slice(3);
+    } else if (pathname.startsWith('/e/')) {
+        internalPathname = '/file/' + pathname.slice(3);
+    }
+
+    // 查找对应的 function 文件（使用 internalPathname）
+    const funcInfo = findFunctionFile(internalPathname);
     if (!funcInfo) return null;
 
     // 记录外部 origin，供 fetch 拦截器使用
@@ -273,8 +281,8 @@ async function handleFunctionRequest(originalRequest, pathname) {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
-    // 获取中间件
-    const middlewares = await findMiddlewares(pathname);
+    // 获取中间件（使用 internalPathname 以匹配正确的中间件目录）
+    const middlewares = await findMiddlewares(internalPathname);
 
     // 如果 onRequest 是数组，把前面的加入中间件链
     if (Array.isArray(mod.onRequest) && mod.onRequest.length > 1 && handler === mod.onRequest[mod.onRequest.length - 1]) {
@@ -308,7 +316,7 @@ async function handleFunctionRequest(originalRequest, pathname) {
     const context = {
         request,
         env,
-        params: funcInfo.params,
+        params: funcInfo.params, // 注意 params 是基于 internalPathname 的，但对我们来说就是文件 ID
         waitUntil: (promise) => {
             if (promise && typeof promise.catch === 'function') {
                 promise.catch(err => console.error('waitUntil error:', err));
@@ -327,7 +335,8 @@ async function handleFunctionRequest(originalRequest, pathname) {
 const app = new Hono();
 
 // 判断是否是 function 路径
-const FUNCTION_PREFIXES = ['/api/', '/upload', '/file/', '/dav/', '/random'];
+// 加入 /p/ 和 /e/，移除 /file/（保留也可以，但建议移除以免混淆）
+const FUNCTION_PREFIXES = ['/api/', '/upload', '/p/', '/e/', '/dav/', '/random'];
 
 function isFunctionPath(pathname) {
     return FUNCTION_PREFIXES.some(prefix => pathname.startsWith(prefix));
