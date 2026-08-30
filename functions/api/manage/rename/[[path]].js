@@ -169,8 +169,19 @@ export async function onRequest(context) {
         await db.put(newFileId, fileData.value, { metadata });
         await db.delete(fileId);
 
+        // 根据域名确定文件访问路径前缀
+        let filePathPrefix;
+        if (url.hostname === 'peixue.kdns.fr') {
+            filePathPrefix = '/p/';
+        } else if (url.hostname === 'eira.kdns.fr') {
+            filePathPrefix = '/e/';
+        } else {
+            // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+            filePathPrefix = '/file/';
+        }
+
         // 清除 CDN 缓存
-        const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+        const cdnUrl = `https://${url.hostname}${filePathPrefix}${fileId}`;
         await purgeCFCache(env, cdnUrl);
 
         // 清除 api/randomFileList 等 API 缓存
