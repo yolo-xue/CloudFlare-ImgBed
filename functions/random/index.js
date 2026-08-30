@@ -135,7 +135,19 @@ export async function onRequest(context) {
     } else {
         const randomIndex = Math.floor(Math.random() * allRecords.length);
         const randomKey = allRecords[randomIndex];
-        const randomPath = '/file/' + randomKey.name;
+        
+        // 根据请求域名确定文件访问路径前缀
+        let filePrefix;
+        if (requestUrl.hostname === 'peixue.kdns.fr') {
+            filePrefix = '/p/';
+        } else if (requestUrl.hostname === 'eira.kdns.fr') {
+            filePrefix = '/e/';
+        } else {
+            // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+            filePrefix = '/file/';
+        }
+
+        const randomPath = filePrefix + randomKey.name;
         let randomUrl = randomPath;
 
         const randomType = requestUrl.searchParams.get('type');
