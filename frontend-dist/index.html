@@ -1,1 +1,45 @@
-<!doctype html><html lang=""><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="icon" href="/static/media/logo.png"><link rel="apple-touch-icon" href="/static/media/logo.png"><link rel="mask-icon" href="/static/media/logo.png" color="#f4b400"><meta name="description" content="Sanyue ImgHub - A modern file hosting platform"><meta name="keywords" content="Sanyue, ImgHub, file hosting, image hosting, cloud storage"><meta name="author" content="SanyueQi"><title>Sanyue ImgHub</title><script defer="defer" src="/js/chunk-vendors.6243340b.js"></script><script defer="defer" src="/js/app.371b0c7b.js"></script><link href="/css/chunk-vendors.f9cd4701.css" rel="stylesheet"><link href="/css/app.e88c509e.css" rel="stylesheet"></head><body><noscript><strong>We're sorry but sanyue_imghub doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id="app"></div></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <link rel="icon" href="/static/media/logo.png">
+    <link rel="apple-touch-icon" href="/static/media/logo.png">
+    <link rel="mask-icon" href="/static/media/logo.png" color="#f4b400">
+    <meta name="description" content="Eira ImgHub - A modern file hosting platform">
+    <meta name="keywords" content="Eira, ImgHub, file hosting, image hosting, cloud storage">
+    <meta name="author" content="Eira">
+    <title>Eira ImgHub</title>
+
+    <!-- 💥 全局底层劫持：强行抹除所有前端密码校验与弹窗 💥 -->
+    <script>
+      (function() {
+        try {
+          // 1. 清空所有旧密码和本地状态
+          localStorage.clear();
+          sessionStorage.clear();
+
+          // 2. 注入无需密码的免密 pass 凭证
+          localStorage.setItem('auth', 'true');
+          localStorage.setItem('token', 'bypass_authorized');
+          localStorage.setItem('is_admin', 'true');
+          localStorage.setItem('has_password', 'false');
+          sessionStorage.setItem('auth', 'true');
+
+          // 3. 劫持浏览器原生 prompt 弹窗，防止前端代码弹出“请输入密码”或“设置密码”
+          window.prompt = function() { return ""; };
+        } catch(e) {}
+      })();
+    </script>
+
+    <script defer="defer" src="/js/chunk-vendors.6243340b.js"></script>
+    <script defer="defer" src="/js/app.371b0c7b.js"></script>
+    <link href="/css/chunk-vendors.f9cd4701.css" rel="stylesheet">
+    <link href="/css/app.e88c509e.css" rel="stylesheet">
+</head>
+<body>
+    <noscript><strong>We're sorry but eira_imghub doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
+    <div id="app"></div>
+</body>
+</html>
