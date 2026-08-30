@@ -1,3 +1,5 @@
+// [已修改] 生成器支持 /p/ 和 /e/ 域名路由，并支持 matchRoute 按域名过滤
+
 /**
  * 自动扫描 functions/ 目录，生成 deploy/worker/index.js
  * 
@@ -184,13 +186,20 @@ for (const route of routes) {
     imports += `import * as ${route.varName} from '${route.importPath}';\n`;
 }
 
-// 生成路由表
+// 生成路由表（对 /file/ 特殊处理，改为 /p/ 和 /e/ 两条带 hostname 的路由）
 let routeEntries = '';
 for (const route of routes) {
     const mwArray = route.middlewareVarNames.length > 0
         ? `[${route.middlewareVarNames.join(', ')}]`
         : '[]';
     
+    // 特殊处理：文件访问路由改名为 /p/ 和 /e/，并绑定域名
+    if (route.urlPath === '/file/' && route.isCatchAll) {
+        routeEntries += `    { path: '/p/', module: ${route.varName}, middlewares: ${mwArray}, catchAll: true, hostname: 'peixue.kdns.fr' },\n`;
+        routeEntries += `    { path: '/e/', module: ${route.varName}, middlewares: ${mwArray}, catchAll: true, hostname: 'eira.kdns.fr' },\n`;
+        continue; // 跳过原 /file/ 条目
+    }
+
     if (route.isCatchAll) {
         routeEntries += `    { path: '${route.urlPath}', module: ${route.varName}, middlewares: ${mwArray}, catchAll: true },\n`;
     } else {
@@ -218,8 +227,13 @@ ${routeEntries}];
 
 // ==================== 路由匹配 ====================
 
-function matchRoute(pathname) {
+function matchRoute(pathname, hostname) {
     for (const route of routes) {
+        // 如果路由指定了 hostname，则必须与当前请求的域名匹配
+        if (route.hostname && route.hostname !== hostname) {
+            continue;
+        }
+
         if (route.catchAll) {
             if (pathname.startsWith(route.path)) {
                 const rest = pathname.slice(route.path.length);
@@ -391,7 +405,7 @@ export default {
         const url = new URL(request.url);
         const pathname = url.pathname;
 
-        const matched = matchRoute(pathname);
+        const matched = matchRoute(pathname, url.hostname);
 
         if (!matched) {
             if (env.ASSETS) {
