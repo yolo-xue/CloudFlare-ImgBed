@@ -12,6 +12,18 @@ const corsHeaders = {
     'Access-Control-Max-Age': '86400',
 };
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+        return '/file/';
+    }
+}
+
 export async function onRequest(context) {
     if (context.request.method !== 'POST') {
         return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
@@ -24,9 +36,11 @@ export async function onRequest(context) {
             return jsonResponse({ success: false, error: 'fileIds is required' }, 400);
         }
         const url = new URL(context.request.url);
+        const filePrefix = getFilePrefix(url.hostname);
         const results = await mapConcurrent(fileIds, DELETE_CONCURRENCY, async (fileId) => {
             try {
-                const cdnUrl = `${url.origin}/file/${fileId.split('/').map(encodeURIComponent).join('/')}`;
+                const encodedPath = fileId.split('/').map(encodeURIComponent).join('/');
+                const cdnUrl = `${url.origin}${filePrefix}${encodedPath}`;
                 const success = await deleteFile(context.env, fileId, cdnUrl, url);
                 return { fileId, success, error: success ? '' : 'Delete file failed' };
             } catch (err) {
