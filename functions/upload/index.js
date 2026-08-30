@@ -14,6 +14,16 @@ import { WebDAVAPI } from "../utils/storage/webdavAPI";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getDatabase } from '../utils/databaseAdapter.js';
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        return '/file/';
+    }
+}
 
 export async function onRequest(context) {  // Contents of context object
     const { request, env, params, waitUntil, next, data } = context;
@@ -193,11 +203,12 @@ async function processFileUpload(context, formdata = null) {
 
     // 获得返回链接格式, default为返回/file/id, full为返回完整链接
     const returnFormat = url.searchParams.get('returnFormat') || 'default';
+    const filePrefix = getFilePrefix(url.hostname);
     let returnLink = '';
     if (returnFormat === 'full') {
-        returnLink = `${url.origin}/file/${fullId}`;
+        returnLink = `${url.origin}${filePrefix}${fullId}`;
     } else {
-        returnLink = `/file/${fullId}`;
+        returnLink = `${filePrefix}${fullId}`;
     }
 
     // 构建公开访问链接（使用 urlPrefix 配置）
@@ -413,7 +424,8 @@ async function uploadFileToS3(context, fullId, metadata, returnLink) {
                 return createResponse("Error: Failed to write to KV database", { status: 500 });
             }
 
-            const moderateUrl = `https://${url.hostname}/file/${fullId}`;
+            const filePrefix = getFilePrefix(url.hostname);
+            const moderateUrl = `https://${url.hostname}${filePrefix}${fullId}`;
             await purgeCDNCache(env, moderateUrl, url);
             metadata.Label = await moderateContent(env, moderateUrl);
         }
@@ -758,7 +770,8 @@ async function uploadFileToHuggingFace(context, fullId, metadata, returnLink) {
                     return createResponse('Error: Failed to write to KV database', { status: 500 });
                 }
                 
-                const moderateUrl = `https://${context.url.hostname}/file/${fullId}`;
+                const filePrefix = getFilePrefix(context.url.hostname);
+                const moderateUrl = `https://${context.url.hostname}${filePrefix}${fullId}`;
                 await purgeCDNCache(env, moderateUrl, context.url);
                 metadata.Label = await moderateContent(env, moderateUrl);
             }
@@ -836,7 +849,8 @@ async function uploadFileToWebDAV(context, fullId, metadata, returnLink) {
                     return createResponse('Error: Failed to write to database', { status: 500 });
                 }
 
-                const moderateUrl = `https://${url.hostname}/file/${fullId}`;
+                const filePrefix = getFilePrefix(url.hostname);
+                const moderateUrl = `https://${url.hostname}${filePrefix}${fullId}`;
                 await purgeCDNCache(env, moderateUrl, url);
                 metadata.Label = await moderateContent(env, moderateUrl);
             }
