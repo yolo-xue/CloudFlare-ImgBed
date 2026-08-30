@@ -18,7 +18,19 @@ export async function onRequest(context) {
     if (params.path) {
       params.path = String(params.path).split(',').join('/');
     }
-    const cdnUrl = `https://${url.hostname}/file/${params.path}`;
+
+    // 根据域名确定文件访问路径前缀
+    let filePathPrefix;
+    if (url.hostname === 'peixue.kdns.fr') {
+      filePathPrefix = '/p/';
+    } else if (url.hostname === 'eira.kdns.fr') {
+      filePathPrefix = '/e/';
+    } else {
+      // 未知域名回退到 /file/（主路由已不支持，但保留兜底）
+      filePathPrefix = '/file/';
+    }
+
+    const cdnUrl = `https://${url.hostname}${filePathPrefix}${params.path}`;
 
     // 解码params.path
     params.path = decodeURIComponent(params.path);
