@@ -5,6 +5,17 @@ import { S3Client, CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
 import { getDatabase } from '../utils/databaseAdapter.js';
 import { fetchPageConfig } from '../utils/sysConfig.js';
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        return '/file/';
+    }
+}
+
 // 处理分块合并
 export async function handleChunkMerge(context) {
     const { request, env, url, waitUntil } = context;
@@ -116,7 +127,15 @@ async function startMerge(context, uploadId, totalChunks, originalFileName, orig
             // 构建公开访问链接（使用 urlPrefix 配置）
             if (result.result && result.result.length > 0) {
                 const src = result.result[0].src;
-                const fileName = src.startsWith('/file/') ? src.slice(6) : src.split('/file/').pop();
+                // 动态提取文件名，兼容 /file/、/p/、/e/ 等前缀
+                const filePrefix = getFilePrefix(new URL(context.request.url).hostname);
+                let fileName;
+                if (src.startsWith(filePrefix)) {
+                    fileName = src.slice(filePrefix.length);
+                } else {
+                    // 兼容旧格式
+                    fileName = src.split('/').pop();
+                }
                 const pageConfig = await fetchPageConfig(env);
                 const urlPrefixConfig = pageConfig.config?.find(c => c.id === 'urlPrefix');
                 const urlPrefix = urlPrefixConfig?.value || '';
@@ -304,12 +323,13 @@ async function mergeR2ChunksInfo(context, uploadId, completedChunks, metadata) {
         waitUntil(endUpload(context, finalFileId, metadata));
 
         // 更新返回链接
+        const filePrefix = getFilePrefix(url.hostname);
         const returnFormat = url.searchParams.get('returnFormat') || 'default';
         let updatedReturnLink = '';
         if (returnFormat === 'full') {
-            updatedReturnLink = `${url.origin}/file/${finalFileId}`;
+            updatedReturnLink = `${url.origin}${filePrefix}${finalFileId}`;
         } else {
-            updatedReturnLink = `/file/${finalFileId}`;
+            updatedReturnLink = `${filePrefix}${finalFileId}`;
         }
 
         return {
@@ -402,12 +422,13 @@ async function mergeS3ChunksInfo(context, uploadId, completedChunks, metadata) {
         waitUntil(endUpload(context, finalFileId, metadata));
 
         // 更新返回链接
+        const filePrefix = getFilePrefix(url.hostname);
         const returnFormat = url.searchParams.get('returnFormat') || 'default';
         let updatedReturnLink = '';
         if (returnFormat === 'full') {
-            updatedReturnLink = `${url.origin}/file/${finalFileId}`;
+            updatedReturnLink = `${url.origin}${filePrefix}${finalFileId}`;
         } else {
-            updatedReturnLink = `/file/${finalFileId}`;
+            updatedReturnLink = `${filePrefix}${finalFileId}`;
         }
 
         return {
@@ -475,12 +496,13 @@ async function mergeTelegramChunksInfo(context, uploadId, completedChunks, metad
         waitUntil(endUpload(context, finalFileId, metadata));
 
         // 生成返回链接
+        const filePrefix = getFilePrefix(url.hostname);
         const returnFormat = url.searchParams.get('returnFormat') || 'default';
         let updatedReturnLink = '';
         if (returnFormat === 'full') {
-            updatedReturnLink = `${url.origin}/file/${finalFileId}`;
+            updatedReturnLink = `${url.origin}${filePrefix}${finalFileId}`;
         } else {
-            updatedReturnLink = `/file/${finalFileId}`;
+            updatedReturnLink = `${filePrefix}${finalFileId}`;
         }
 
         return {
@@ -549,12 +571,13 @@ async function mergeDiscordChunksInfo(context, uploadId, completedChunks, metada
         waitUntil(endUpload(context, finalFileId, metadata));
 
         // 生成返回链接
+        const filePrefix = getFilePrefix(url.hostname);
         const returnFormat = url.searchParams.get('returnFormat') || 'default';
         let updatedReturnLink = '';
         if (returnFormat === 'full') {
-            updatedReturnLink = `${url.origin}/file/${finalFileId}`;
+            updatedReturnLink = `${url.origin}${filePrefix}${finalFileId}`;
         } else {
-            updatedReturnLink = `/file/${finalFileId}`;
+            updatedReturnLink = `${filePrefix}${finalFileId}`;
         }
 
         return {
