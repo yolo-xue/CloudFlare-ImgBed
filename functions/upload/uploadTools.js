@@ -3,6 +3,17 @@ import { purgeCFCache, purgeRandomFileListCache, purgePublicFileListCache } from
 import { addFileToIndex } from "../utils/indexManager.js";
 import { getDatabase } from '../utils/databaseAdapter.js';
 
+// 根据域名返回文件访问路径前缀
+function getFilePrefix(hostname) {
+    if (hostname === 'peixue.kdns.fr') {
+        return '/p/';
+    } else if (hostname === 'eira.kdns.fr') {
+        return '/e/';
+    } else {
+        return '/file/';
+    }
+}
+
 // 统一的响应创建函数
 export function createResponse(body, options = {}) {
     const defaultHeaders = {
@@ -390,7 +401,8 @@ export async function endUpload(context, fileId, metadata) {
     const { env, url } = context;
 
     // 清除CDN缓存
-    const cdnUrl = `https://${url.hostname}/file/${fileId}`;
+    const filePrefix = getFilePrefix(url.hostname);
+    const cdnUrl = `https://${url.hostname}${filePrefix}${fileId}`;
     const normalizedFolder = sanitizeUploadFolder(url.searchParams.get('uploadFolder') || '');
     await purgeCDNCache(env, cdnUrl, url, normalizedFolder);
 
