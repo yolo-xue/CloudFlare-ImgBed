@@ -26,75 +26,6 @@
     html.entry-loading.dark { background: #0f0f0f; color-scheme: dark; }
   </style>
   
-  <!-- ================= ⬇️ 新增：去除毛玻璃、全透明 CSS ⬇️ ================= -->
-  <style>
-    /* 1. 全局彻底禁用毛玻璃和高斯模糊 */
-    *,
-    *::before,
-    *::after {
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-    }
-
-    /* 2. 覆盖 Element UI / Vue 组件库的基础背景变量 */
-    :root {
-      --el-bg-color: transparent !important;
-      --el-bg-color-overlay: transparent !important;
-      --el-fill-color-blank: transparent !important;
-      --el-fill-color-light: transparent !important;
-      --el-border-color: rgba(255, 255, 255, 0.2) !important; /* 边框改为极淡的半透明 */
-    }
-
-    /* 3. 主要容器、工具栏、面板透明化 */
-    .quick-toolbar,
-    .quick-toolbar-actions,
-    .quick-toolbar-actions-inner,
-    .upload-list-dashboard,
-    .el-card,
-    .el-dialog,
-    .el-menu,
-    .el-dropdown-menu {
-      background: transparent !important;
-      background-color: transparent !important;
-      box-shadow: none !important;
-      border: none !important;
-    }
-
-    /* 4. 按钮、图标、输入框透明化 */
-    .quick-toolbar-button,
-    .modern-action-btn,
-    .mobile-more-button,
-    .directory-tree-trigger,
-    .el-input__wrapper {
-      background: transparent !important;
-      background-color: transparent !important;
-      box-shadow: none !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important; /* 保留微弱边框以免找不到 */
-    }
-
-    /* 5. 悬停交互时给一点点极其微弱的反馈，否则容易误触 */
-    .quick-toolbar-button:hover,
-    .modern-action-btn:hover,
-    .directory-tree-trigger:hover {
-      background: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    /* 6. 拖拽上传区域透明化 */
-    .el-upload--text,
-    .el-upload-dragger {
-      background: transparent !important;
-      background-color: transparent !important;
-      box-shadow: none !important;
-      border: 2px dashed rgba(255, 255, 255, 0.3) !important; /* 虚线框 */
-    }
-    
-    /* 7. 如果背景图太花导致看不清文字，可以在设置里调回深色模式，或者在下方添加文字阴影 */
-    #app, .el-text {
-      text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* 给文字加一点点阴影，防止全透明后看不见字 */
-    }
-  </style>
-  <!-- ================= ⬆️ 新增结束 ⬆️ ================= -->
-
   <link rel="preload" href="/entry/entry-loader.c76da827.js" as="script">
   <link rel="icon" href="/static/media/logo.png">
   <link rel="apple-touch-icon" href="/static/media/logo.png">
@@ -114,6 +45,7 @@
     <style>#entry-loader { display: none; }</style>
     <strong>We're sorry but sanyue_imghub doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
   </noscript>
+  
   <div id="entry-loader" role="status" aria-live="polite" aria-label="Loading">
     <div class="entry-loader-content">
       <div class="entry-loader-name" aria-hidden="true"></div>
@@ -141,7 +73,58 @@
       </div>
     </div>
   </div>
+  
   <div id="app" inert></div>
   <script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script>
+
+  <!-- ================= ⬇️ 新增：JavaScript 暴力去毛玻璃脚本 ⬇️ ================= -->
+  <script>
+    (function() {
+      // 核心清理函数：遍历所有元素，强行清除模糊和玻璃背景
+      function killGlass() {
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+          // 1. 强制移除毛玻璃和高斯模糊（加 !important 强制覆盖）
+          el.style.setProperty('backdrop-filter', 'none', 'important');
+          el.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
+          
+          // 2. 获取计算后的样式，判断是否为半透明背景
+          const style = window.getComputedStyle(el);
+          
+          // 3. 如果元素使用了半透明/玻璃背景色，强行设为全透明
+          if (style.backgroundColor && (style.backgroundColor.includes('rgba') || style.backgroundColor.includes('hsla'))) {
+             el.style.setProperty('background-color', 'transparent', 'important');
+          }
+          
+          // 4. 把那些带玻璃背景的 CSS 变量强行覆盖
+          if (style.backgroundImage && style.backgroundImage !== 'none') {
+             // 如果背景是渐变（比如玻璃高光），也去掉
+             if (style.backgroundImage.includes('gradient')) {
+                 el.style.setProperty('background-image', 'none', 'important');
+             }
+          }
+          
+          // 5. 去除玻璃带来的阴影
+          if (style.boxShadow && style.boxShadow !== 'none') {
+             el.style.setProperty('box-shadow', 'none', 'important');
+          }
+        });
+      }
+
+      // 页面初始加载时执行
+      document.addEventListener('DOMContentLoaded', killGlass);
+      
+      // 延迟执行几次（对付 Vue 的异步渲染）
+      setTimeout(killGlass, 300);
+      setTimeout(killGlass, 1000);
+      setTimeout(killGlass, 2500);
+      
+      // 监听 DOM 变化，只要新出现带玻璃的元素，立刻干掉
+      const observer = new MutationObserver(killGlass);
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    })();
+  </script>
+  <!-- ================= ⬆️ 新增结束 ⬆️ ================= -->
+
 </body>
 </html>
