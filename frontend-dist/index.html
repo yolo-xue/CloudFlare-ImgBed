@@ -1,4 +1,11 @@
-<!doctype html><html lang=""><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><script data-cfasync="false">(() => {
+<!doctype html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <script data-cfasync="false">
+    (() => {
       const root = document.documentElement;
       let cached = {};
       try { cached = JSON.parse(localStorage.getItem('vuex') || '{}') || {}; } catch {}
@@ -8,10 +15,133 @@
         : matchMedia('(prefers-color-scheme: dark)').matches || hour >= 22 || hour < 6;
       root.classList.add('entry-loading');
       root.classList.toggle('dark', dark);
-      // 配置请求与应用资源并行，标题不必等主应用启动后才出现。
       const configReady = fetch('/api/userConfig', { credentials: 'same-origin' })
         .then(response => response.ok ? response.json() : null)
         .catch(() => null);
       window.__siteEntryBootstrap = { config: cached.userConfig, configReady };
-    })();</script><style>html.entry-loading { background: #f5f5f7; }
-    html.entry-loading.dark { background: #0f0f0f; color-scheme: dark; }</style><link rel="preload" href="/entry/entry-loader.c76da827.js" as="script"><link rel="icon" href="/static/media/logo.png"><link rel="apple-touch-icon" href="/static/media/logo.png"><link rel="mask-icon" href="/static/media/logo.png" color="#f4b400"><link rel="preload" href="/fonts/Pacifico-Regular.dc63ac94.woff2" as="font" type="font/woff2" crossorigin><meta name="description" content="Sanyue ImgHub - A modern file hosting platform"><meta name="keywords" content="Sanyue, ImgHub, file hosting, image hosting, cloud storage"><meta name="author" content="SanyueQi"><title>Sanyue ImgHub</title><link rel="stylesheet" href="/entry/entry-loader.f41470d3.css"><link rel="stylesheet" href="/css/chunk-vendors.c8a4c1c7.css"><link rel="stylesheet" href="/css/app.15960487.css"><script data-cfasync="false" defer="defer" src="/js/chunk-vendors.229dcca1.js"></script><script data-cfasync="false" defer="defer" src="/js/app.c1ad727a.js"></script></head><body><noscript><style>#entry-loader { display: none; }</style><strong>We're sorry but sanyue_imghub doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id="entry-loader" role="status" aria-live="polite" aria-label="Loading"><div class="entry-loader-content"><div class="entry-loader-name" aria-hidden="true"></div><div class="entry-loader-progress" aria-hidden="true"><div class="entry-loader-duck-travel"><div class="entry-loader-duck"><svg class="entry-duck-head" viewBox="0 0 56 48" fill="none"><path d="M25 9Q21 2 26 3Q29 3 29 8M29 8Q34 2 36 6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><ellipse cx="28" cy="26" rx="22" ry="19" fill="currentColor"/><path d="M15 17Q18 12 24 12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.22"/><ellipse cx="19.5" cy="25" rx="2" ry="2.7" fill="var(--entry-duck-eye)"/><ellipse cx="36.5" cy="25" rx="2" ry="2.7" fill="var(--entry-duck-eye)"/><g fill="#fff" opacity="0.9"><circle cx="19" cy="24" r="0.7"/><circle cx="36" cy="24" r="0.7"/></g><g fill="var(--entry-duck-cheek)" opacity="0.65"><ellipse cx="14.5" cy="31" rx="3.8" ry="2.4"/><ellipse cx="41.5" cy="31" rx="3.8" ry="2.4"/></g><ellipse cx="28" cy="33" rx="7.5" ry="4.3" fill="var(--entry-duck-beak)"/><path d="M23 33Q28 35 33 33" stroke="var(--entry-duck-mouth)" stroke-width="1.2" stroke-linecap="round"/></svg> <svg class="entry-duck-ripples" viewBox="0 0 56 48" fill="none" stroke="var(--entry-accent)" stroke-width="1" stroke-linecap="round"><path d="M5 46H12M22 47H34M44 46H51"/></svg></div><div class="entry-loader-bar"></div></div><div class="entry-loader-track"></div></div></div></div><div id="app" inert></div><script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script></body></html>
+    })();
+  </script>
+  <style>
+    html.entry-loading { background: #f5f5f7; }
+    html.entry-loading.dark { background: #0f0f0f; color-scheme: dark; }
+  </style>
+  
+  <!-- ================= ⬇️ 新增：去除毛玻璃、全透明 CSS ⬇️ ================= -->
+  <style>
+    /* 1. 全局彻底禁用毛玻璃和高斯模糊 */
+    *,
+    *::before,
+    *::after {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* 2. 覆盖 Element UI / Vue 组件库的基础背景变量 */
+    :root {
+      --el-bg-color: transparent !important;
+      --el-bg-color-overlay: transparent !important;
+      --el-fill-color-blank: transparent !important;
+      --el-fill-color-light: transparent !important;
+      --el-border-color: rgba(255, 255, 255, 0.2) !important; /* 边框改为极淡的半透明 */
+    }
+
+    /* 3. 主要容器、工具栏、面板透明化 */
+    .quick-toolbar,
+    .quick-toolbar-actions,
+    .quick-toolbar-actions-inner,
+    .upload-list-dashboard,
+    .el-card,
+    .el-dialog,
+    .el-menu,
+    .el-dropdown-menu {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    /* 4. 按钮、图标、输入框透明化 */
+    .quick-toolbar-button,
+    .modern-action-btn,
+    .mobile-more-button,
+    .directory-tree-trigger,
+    .el-input__wrapper {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important; /* 保留微弱边框以免找不到 */
+    }
+
+    /* 5. 悬停交互时给一点点极其微弱的反馈，否则容易误触 */
+    .quick-toolbar-button:hover,
+    .modern-action-btn:hover,
+    .directory-tree-trigger:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* 6. 拖拽上传区域透明化 */
+    .el-upload--text,
+    .el-upload-dragger {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      border: 2px dashed rgba(255, 255, 255, 0.3) !important; /* 虚线框 */
+    }
+    
+    /* 7. 如果背景图太花导致看不清文字，可以在设置里调回深色模式，或者在下方添加文字阴影 */
+    #app, .el-text {
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* 给文字加一点点阴影，防止全透明后看不见字 */
+    }
+  </style>
+  <!-- ================= ⬆️ 新增结束 ⬆️ ================= -->
+
+  <link rel="preload" href="/entry/entry-loader.c76da827.js" as="script">
+  <link rel="icon" href="/static/media/logo.png">
+  <link rel="apple-touch-icon" href="/static/media/logo.png">
+  <link rel="mask-icon" href="/static/media/logo.png" color="#f4b400">
+  <link rel="preload" href="/fonts/Pacifico-Regular.dc63ac94.woff2" as="font" type="font/woff2" crossorigin>
+  <meta name="description" content="Sanyue ImgHub - A modern file hosting platform">
+  <meta name="keywords" content="Sanyue, ImgHub, file hosting, image hosting, cloud storage">
+  <meta name="author" content="SanyueQi"><title>Sanyue ImgHub</title>
+  <link rel="stylesheet" href="/entry/entry-loader.f41470d3.css">
+  <link rel="stylesheet" href="/css/chunk-vendors.c8a4c1c7.css">
+  <link rel="stylesheet" href="/css/app.15960487.css">
+  <script data-cfasync="false" defer="defer" src="/js/chunk-vendors.229dcca1.js"></script>
+  <script data-cfasync="false" defer="defer" src="/js/app.c1ad727a.js"></script>
+</head>
+<body>
+  <noscript>
+    <style>#entry-loader { display: none; }</style>
+    <strong>We're sorry but sanyue_imghub doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+  </noscript>
+  <div id="entry-loader" role="status" aria-live="polite" aria-label="Loading">
+    <div class="entry-loader-content">
+      <div class="entry-loader-name" aria-hidden="true"></div>
+      <div class="entry-loader-progress" aria-hidden="true">
+        <div class="entry-loader-duck-travel">
+          <div class="entry-loader-duck">
+            <svg class="entry-duck-head" viewBox="0 0 56 48" fill="none">
+              <path d="M25 9Q21 2 26 3Q29 3 29 8M29 8Q34 2 36 6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+              <ellipse cx="28" cy="26" rx="22" ry="19" fill="currentColor"/>
+              <path d="M15 17Q18 12 24 12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+              <ellipse cx="19.5" cy="25" rx="2" ry="2.7" fill="var(--entry-duck-eye)"/>
+              <ellipse cx="36.5" cy="25" rx="2" ry="2.7" fill="var(--entry-duck-eye)"/>
+              <g fill="#fff" opacity="0.9"><circle cx="19" cy="24" r="0.7"/><circle cx="36" cy="24" r="0.7"/></g>
+              <g fill="var(--entry-duck-cheek)" opacity="0.65"><ellipse cx="14.5" cy="31" rx="3.8" ry="2.4"/><ellipse cx="41.5" cy="31" rx="3.8" ry="2.4"/></g>
+              <ellipse cx="28" cy="33" rx="7.5" ry="4.3" fill="var(--entry-duck-beak)"/>
+              <path d="M23 33Q28 35 33 33" stroke="var(--entry-duck-mouth)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg> 
+            <svg class="entry-duck-ripples" viewBox="0 0 56 48" fill="none" stroke="var(--entry-accent)" stroke-width="1" stroke-linecap="round">
+              <path d="M5 46H12M22 47H34M44 46H51"/>
+            </svg>
+          </div>
+          <div class="entry-loader-bar"></div>
+        </div>
+        <div class="entry-loader-track"></div>
+      </div>
+    </div>
+  </div>
+  <div id="app" inert></div>
+  <script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script>
+</body>
+</html>
