@@ -77,14 +77,14 @@
   <div id="app" inert></div>
   <script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script>
 
-  <!-- ================= ⬇️ 新增：透明+保留边框 JavaScript 脚本 ⬇️ ================= -->
+  <!-- ================= ⬇️ 新增：极致透明+保留边框 JS 脚本 ⬇️ ================= -->
   <script>
     (function() {
-      function applyTransparentTheme() {
+      function refineUI() {
+        // 1. 遍历所有元素，清除背景和模糊
         const allElements = document.querySelectorAll('*');
-        
-        // 1. 第一轮：全局清洗背景和毛玻璃
         allElements.forEach(el => {
+          // 强制移除毛玻璃和高斯模糊
           el.style.setProperty('backdrop-filter', 'none', 'important');
           el.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
           el.style.setProperty('filter', 'none', 'important');
@@ -92,42 +92,78 @@
           const style = window.getComputedStyle(el);
           const bg = style.backgroundColor;
           
+          // 只要背景不是完全透明，就强行干掉（包含纯白、纯黑、任意RGB/RGBA）
           if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
              el.style.setProperty('background-color', 'transparent', 'important');
              el.style.setProperty('background', 'transparent', 'important');
           }
-          if (style.backgroundImage && style.backgroundImage !== 'none') {
+          // 干掉渐变背景
+          const bgImage = style.backgroundImage;
+          if (bgImage && bgImage !== 'none') {
              el.style.setProperty('background-image', 'none', 'important');
           }
+          // 干掉阴影
           if (style.boxShadow && style.boxShadow !== 'none') {
              el.style.setProperty('box-shadow', 'none', 'important');
           }
         });
 
-        // 2. 第二轮：精准给下拉菜单和左上角按钮加上边框（不删边框，只加边框）
-        const menuSelectors = [
-          '.page-option', '.page-option.is-current', '.page-switcher-title', 
-          '.el-dropdown-menu', '.el-dropdown-menu__item', '.el-menu--popup', 
-          '.el-popper', '.el-dropdown__popper'
-        ].join(',');
+        // ==========================================
+        // 🎯 精准恢复：给你喜欢的下拉菜单加上透明边框！
+        // ==========================================
+        
+        // 1. 下拉菜单的外层容器（给它加个漂亮的边框线）
+        const sheets = document.querySelectorAll('.page-switcher-sheet');
+        sheets.forEach(el => {
+          el.style.setProperty('background', 'transparent', 'important');
+          el.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.4)', 'important'); // 半透明白色边框
+          el.style.setProperty('border-radius', '12px', 'important');
+        });
 
-        const menuElements = document.querySelectorAll(menuSelectors);
-        menuElements.forEach(el => {
+        // 2. 下拉菜单的列表容器（去除它自带的背景）
+        const lists = document.querySelectorAll('.page-option-list');
+        lists.forEach(el => {
+          el.style.setProperty('background', 'transparent', 'important');
+          el.style.setProperty('border', 'none', 'important');
+        });
+
+        // 3. 每个选项按钮（透明，保留点击手感）
+        const options = document.querySelectorAll('.page-option');
+        options.forEach(el => {
+          el.style.setProperty('background', 'transparent', 'important');
+          el.style.setProperty('border', 'none', 'important');
+        });
+
+        // 4. 悬浮的高亮色块（原作者用来做选中效果的，把它改成半透明边框/微弱背景）
+        const highlights = document.querySelectorAll('.page-option-highlight');
+        highlights.forEach(el => {
+          // 如果你想要完全透明，改成 transparent 即可
+          el.style.setProperty('background', 'rgba(255, 255, 255, 0.15)', 'important'); 
+          el.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.2)', 'important');
+          el.style.setProperty('border-radius', '8px', 'important');
+        });
+
+        // 5. 再次清理“系统设置”本身的背景
+        const systemButtons = document.querySelectorAll('.page-option, .page-option.is-current, .page-switcher-title, .page-option-icon, .page-switcher-arrow');
+        systemButtons.forEach(el => {
           el.style.setProperty('background-color', 'transparent', 'important');
           el.style.setProperty('background', 'transparent', 'important');
-          // 强行加上半透明白色边框
-          el.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.4)', 'important');
-          el.style.setProperty('border-radius', '8px', 'important');
           el.style.setProperty('box-shadow', 'none', 'important');
         });
       }
 
-      document.addEventListener('DOMContentLoaded', applyTransparentTheme);
-      setTimeout(applyTransparentTheme, 200);
-      setTimeout(applyTransparentTheme, 800);
-      setTimeout(applyTransparentTheme, 2000);
+      // 页面初始加载时执行
+      document.addEventListener('DOMContentLoaded', refineUI);
       
-      const observer = new MutationObserver(() => applyTransparentTheme());
+      // 延迟执行（对付 Vue 动态渲染和懒加载）
+      setTimeout(refineUI, 200);
+      setTimeout(refineUI, 500);
+      setTimeout(refineUI, 1000);
+      setTimeout(refineUI, 2000);
+      setTimeout(refineUI, 3500);
+      
+      // 监听 DOM 变化：只要页面出现新元素，立刻执行清洗
+      const observer = new MutationObserver(() => refineUI());
       observer.observe(document.documentElement, { childList: true, subtree: true });
     })();
   </script>
