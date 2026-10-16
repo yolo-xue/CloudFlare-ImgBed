@@ -77,50 +77,65 @@
   <div id="app" inert></div>
   <script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script>
 
-  <!-- ================= ⬇️ 新增：JavaScript 暴力去毛玻璃脚本 ⬇️ ================= -->
+  <!-- ================= ⬇️ 新增：极致透明 JavaScript 脚本 ⬇️ ================= -->
   <script>
     (function() {
-      // 核心清理函数：遍历所有元素，强行清除模糊和玻璃背景
-      function killGlass() {
+      // 强制清洗所有元素的背景、模糊、阴影
+      function killGlassAndWhite() {
         const allElements = document.querySelectorAll('*');
         allElements.forEach(el => {
-          // 1. 强制移除毛玻璃和高斯模糊（加 !important 强制覆盖）
+          // 1. 强制移除毛玻璃和高斯模糊
           el.style.setProperty('backdrop-filter', 'none', 'important');
           el.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
+          el.style.setProperty('filter', 'none', 'important');
           
-          // 2. 获取计算后的样式，判断是否为半透明背景
           const style = window.getComputedStyle(el);
+          const bg = style.backgroundColor;
           
-          // 3. 如果元素使用了半透明/玻璃背景色，强行设为全透明
-          if (style.backgroundColor && (style.backgroundColor.includes('rgba') || style.backgroundColor.includes('hsla'))) {
+          // 2. 只要背景不是完全透明，就强行干掉（包含纯白、纯黑、任意RGB/RGBA）
+          if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
              el.style.setProperty('background-color', 'transparent', 'important');
+             el.style.setProperty('background', 'transparent', 'important');
           }
           
-          // 4. 把那些带玻璃背景的 CSS 变量强行覆盖
-          if (style.backgroundImage && style.backgroundImage !== 'none') {
-             // 如果背景是渐变（比如玻璃高光），也去掉
-             if (style.backgroundImage.includes('gradient')) {
-                 el.style.setProperty('background-image', 'none', 'important');
-             }
+          // 3. 干掉纯白或渐变背景
+          const bgImage = style.backgroundImage;
+          if (bgImage && bgImage !== 'none') {
+             el.style.setProperty('background-image', 'none', 'important');
           }
           
-          // 5. 去除玻璃带来的阴影
+          // 4. 干掉所有阴影
           if (style.boxShadow && style.boxShadow !== 'none') {
              el.style.setProperty('box-shadow', 'none', 'important');
           }
         });
+
+        // ==========================================
+        // 🎯 精准打击：专门针对“系统设置”下拉按钮及周边
+        // ==========================================
+        const systemButtons = document.querySelectorAll(
+          '.page-option, .page-option.is-current, .page-switcher-title, .page-option-icon, .page-switcher-arrow'
+        );
+        systemButtons.forEach(el => {
+          el.style.setProperty('background-color', 'transparent', 'important');
+          el.style.setProperty('background', 'transparent', 'important');
+          el.style.setProperty('border', 'none', 'important');
+          el.style.setProperty('box-shadow', 'none', 'important');
+        });
       }
 
       // 页面初始加载时执行
-      document.addEventListener('DOMContentLoaded', killGlass);
+      document.addEventListener('DOMContentLoaded', killGlassAndWhite);
       
-      // 延迟执行几次（对付 Vue 的异步渲染）
-      setTimeout(killGlass, 300);
-      setTimeout(killGlass, 1000);
-      setTimeout(killGlass, 2500);
+      // 延迟执行（对付 Vue 动态渲染和懒加载）
+      setTimeout(killGlassAndWhite, 200);
+      setTimeout(killGlassAndWhite, 500);
+      setTimeout(killGlassAndWhite, 1000);
+      setTimeout(killGlassAndWhite, 2000);
+      setTimeout(killGlassAndWhite, 3500);
       
-      // 监听 DOM 变化，只要新出现带玻璃的元素，立刻干掉
-      const observer = new MutationObserver(killGlass);
+      // 监听 DOM 变化：只要页面出现新元素，立刻执行清洗
+      const observer = new MutationObserver(() => killGlassAndWhite());
       observer.observe(document.documentElement, { childList: true, subtree: true });
     })();
   </script>
