@@ -77,10 +77,9 @@
   <div id="app" inert></div>
   <script data-cfasync="false" src="/entry/entry-loader.c76da827.js"></script>
 
-  <!-- ================= ⬇️ 新增：极致透明 JavaScript 脚本 ⬇️ ================= -->
+  <!-- ================= ⬇️ 新增：极致透明 + 悬浮菜单保留边框 脚本 ⬇️ ================= -->
   <script>
     (function() {
-      // 强制清洗所有元素的背景、模糊、阴影
       function killGlassAndWhite() {
         const allElements = document.querySelectorAll('*');
         allElements.forEach(el => {
@@ -92,49 +91,59 @@
           const style = window.getComputedStyle(el);
           const bg = style.backgroundColor;
           
-          // 2. 只要背景不是完全透明，就强行干掉（包含纯白、纯黑、任意RGB/RGBA）
+          // 2. 强制背景全透明（包含纯白、纯黑、任意RGB/RGBA）
           if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
              el.style.setProperty('background-color', 'transparent', 'important');
              el.style.setProperty('background', 'transparent', 'important');
           }
           
-          // 3. 干掉纯白或渐变背景
-          const bgImage = style.backgroundImage;
-          if (bgImage && bgImage !== 'none') {
+          if (style.backgroundImage && style.backgroundImage !== 'none') {
              el.style.setProperty('background-image', 'none', 'important');
           }
           
-          // 4. 干掉所有阴影
+          // 3. 干掉所有阴影
           if (style.boxShadow && style.boxShadow !== 'none') {
              el.style.setProperty('box-shadow', 'none', 'important');
           }
+
+          // ========================================================
+          // 🎯 核心修复：给悬浮菜单、下拉框、弹出层专门加上透明边框
+          // ========================================================
+          const isMenu = el.classList.contains('el-menu') || 
+                         el.classList.contains('el-dropdown-menu') || 
+                         el.classList.contains('el-popper') ||
+                         el.classList.contains('page-switcher-dropdown') ||
+                         el.tagName.toLowerCase() === 'ul' && el.parentElement && el.parentElement.classList.contains('el-popper');
+
+          if (isMenu) {
+              // 给菜单加上极细的半透明白色边框，让你能看清轮廓
+              el.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.4)', 'important');
+              // 确保菜单内部元素也是透明的
+              el.style.setProperty('background-color', 'transparent', 'important');
+          } else if (el.tagName.toLowerCase() !== 'input' && el.tagName.toLowerCase() !== 'button') {
+              // 其他元素（除了输入框和按钮外）去掉边框
+              el.style.setProperty('border', 'none', 'important');
+          }
         });
 
-        // ==========================================
-        // 🎯 精准打击：专门针对“系统设置”下拉按钮及周边
-        // ==========================================
-        const systemButtons = document.querySelectorAll(
-          '.page-option, .page-option.is-current, .page-switcher-title, .page-option-icon, .page-switcher-arrow'
-        );
-        systemButtons.forEach(el => {
+        // 精准打击左上角这个“系统设置”按钮及其内部元素
+        const pageOptions = document.querySelectorAll('.page-option, .page-option.is-current, .page-switcher-title');
+        pageOptions.forEach(el => {
           el.style.setProperty('background-color', 'transparent', 'important');
           el.style.setProperty('background', 'transparent', 'important');
           el.style.setProperty('border', 'none', 'important');
-          el.style.setProperty('box-shadow', 'none', 'important');
         });
       }
 
-      // 页面初始加载时执行
+      // 执行时机
       document.addEventListener('DOMContentLoaded', killGlassAndWhite);
-      
-      // 延迟执行（对付 Vue 动态渲染和懒加载）
       setTimeout(killGlassAndWhite, 200);
       setTimeout(killGlassAndWhite, 500);
       setTimeout(killGlassAndWhite, 1000);
       setTimeout(killGlassAndWhite, 2000);
       setTimeout(killGlassAndWhite, 3500);
       
-      // 监听 DOM 变化：只要页面出现新元素，立刻执行清洗
+      // 监听 DOM 变化，点开菜单的一瞬间立刻给它上边框
       const observer = new MutationObserver(() => killGlassAndWhite());
       observer.observe(document.documentElement, { childList: true, subtree: true });
     })();
